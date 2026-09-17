@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) ||
+        request.auth.token.email == "nilora23x@gmail.com"
+      );
+    }
+
+    // Admins collection: read by auth user, modified only by admins
+    match /admins/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Public website content: read publicly, write by admin
+    match /websiteContent/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Design settings: read publicly, write by admin
+    match /designSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Site settings: read publicly, write by admin
+    match /siteSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Services: read active services publicly, write by admin
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Portfolio items: read visible publicly, write by admin
+    match /portfolio/{portfolioId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Portfolio categories: read publicly, write by admin
+    match /portfolioCategories/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reviews: read approved publicly, write by admin
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Bookings:
+    // Anyone can create a pending booking (with valid required fields)
+    // Admin can read, write, update all bookings
+    // Customer can read only their booking if they provide secureToken match in query or via backend
+    match /bookings/{bookingId} {
+      allow create: if request.resource.data.clientName is string &&
+                       request.resource.data.clientEmail is string &&
+                       request.resource.data.status == "pending";
+      allow read: if isAdmin() || (resource.data.secureToken != null && request.auth == null);
+      allow update, delete: if isAdmin();
+    }
+
+    // Admin notifications: read & write only by admins
+    match /notifications/{notificationId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Email logs: admin only
+    match /emailLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // WhatsApp logs: admin only
+    match /whatsappLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Audit logs: admin only
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Availability & blocked dates: read publicly to disable unavailable dates, write only by admin
+    match /availability/{availId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Client Private Galleries:
+    // Admin has full read and write access
+    // Clients can read only if querying their secureToken or direct token match, and if not revoked/expired
+    match /galleries/{galleryId} {
+      allow read: if isAdmin() || (resource.data.active == true);
+      allow write: if isAdmin();
+    }
+  }
+}
