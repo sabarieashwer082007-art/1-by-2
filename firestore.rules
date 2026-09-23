@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) ||
+        request.auth.token.email == "brucetamilyt@gmail.com" ||
+        request.auth.token.email == "nilora23x@gmail.com"
+      );
+    }
+
+    // Admins collection: read by auth user, modified only by admins
+    match /admins/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Public website content: read publicly, write by admin
+    match /websiteContent/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Design settings: read publicly, write by admin
+    match /designSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Site settings: read publicly, write by admin
+    match /siteSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Services: read active services publicly, write by admin
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Portfolio items: read visible publicly, write by admin
+    match /portfolio/{portfolioId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Portfolio categories: read publicly, write by admin
+    match /portfolioCategories/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Unified Categories: read publicly, write by admin
+    match /categories/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reviews: read approved publicly, creation of pending reviews allowed, updates/deletions by admin
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.resource.data.customerName is string &&
+                       request.resource.data.reviewText is string &&
+                       request.resource.data.approved == false;
+      allow update, delete: if isAdmin();
+    }
+
+    // Bookings:
+    // Anyone can read booking status / unavailable dates
+    // Anyone can create a pending booking (with valid required fields)
+    // Admin can read, write, update all bookings
+    match /bookings/{bookingId} {
+      allow read: if true;
+      allow create: if request.resource.data.clientName is string &&
+                       request.resource.data.clientEmail is string;
+      allow update, delete: if isAdmin();
+    }
+
+    // Admin notifications: read & manage by admins, creation allowed for booking alerts
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if true;
+    }
+
+    // Email logs: admin only
+    match /emailLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // WhatsApp logs: admin only
+    match /whatsappLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Audit logs: read & manage by admin, creation allowed for events
+    match /auditLogs/{logId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if true;
+    }
+
+    // Availability & blocked dates: read publicly to disable unavailable dates, write only by admin
+    match /availability/{availId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Media Library: public read, write by admin
+    match /mediaLibrary/{mediaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Client Private Galleries:
+    // Public read for token validation, admin create/delete,
+    // clients can update photo favorite selections on active galleries
+    match /galleries/{galleryId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || resource.data.active == true;
+    }
+  }
+}

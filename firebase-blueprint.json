@@ -1,0 +1,290 @@
+{
+  "entities": {
+    "admins": {
+      "title": "Admins",
+      "description": "Studio administrators with full access to manage bookings, CMS, and settings",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "super_admin"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    },
+    "bookings": {
+      "title": "Bookings",
+      "description": "Client photography session bookings and status tracking",
+      "type": "object",
+      "properties": {
+        "bookingId": { "type": "string" },
+        "secureToken": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientEmail": { "type": "string" },
+        "clientPhone": { "type": "string" },
+        "service": { "type": "string" },
+        "preferredDate": { "type": "string" },
+        "preferredTime": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "cancelled", "completed"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "approvedAt": { "type": "string" },
+        "rejectedAt": { "type": "string" },
+        "completedAt": { "type": "string" },
+        "adminNotes": { "type": "string" },
+        "rejectionReason": { "type": "string" },
+        "adminId": { "type": "string" },
+        "emailStatus": { "type": "string" },
+        "whatsappStatus": { "type": "string" }
+      },
+      "required": ["bookingId", "clientName", "clientEmail", "clientPhone", "service", "preferredDate", "status", "createdAt"]
+    },
+    "portfolio": {
+      "title": "Portfolio",
+      "description": "Photography portfolio images and gallery items",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "category": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "visible": { "type": "boolean" },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "imageUrl", "category", "visible"]
+    },
+    "portfolioCategories": {
+      "title": "Portfolio Categories",
+      "description": "Categories for organizing portfolio items",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "slug"]
+    },
+    "services": {
+      "title": "Services",
+      "description": "Studio photography service offerings",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "icon": { "type": "string" },
+        "ctaText": { "type": "string" },
+        "order": { "type": "number" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["name", "description", "active"]
+    },
+    "reviews": {
+      "title": "Reviews",
+      "description": "Client reviews and testimonials",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "reviewText": { "type": "string" },
+        "rating": { "type": "number" },
+        "customerImage": { "type": "string" },
+        "service": { "type": "string" },
+        "approved": { "type": "boolean" },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["customerName", "reviewText", "rating", "approved"]
+    },
+    "websiteContent": {
+      "title": "Website Content",
+      "description": "CMS editable content for website sections",
+      "type": "object",
+      "properties": {
+        "section": { "type": "string" },
+        "data": { "type": "object" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["section", "data"]
+    },
+    "designSettings": {
+      "title": "Design Settings",
+      "description": "Theme colors, fonts, and styling parameters",
+      "type": "object",
+      "properties": {
+        "primaryColor": { "type": "string" },
+        "secondaryColor": { "type": "string" },
+        "accentColor": { "type": "string" },
+        "backgroundColor": { "type": "string" },
+        "surfaceColor": { "type": "string" },
+        "headingColor": { "type": "string" },
+        "bodyTextColor": { "type": "string" },
+        "buttonColor": { "type": "string" },
+        "buttonHoverColor": { "type": "string" },
+        "borderColor": { "type": "string" },
+        "headingFont": { "type": "string" },
+        "bodyFont": { "type": "string" },
+        "borderRadius": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Admin real-time notifications for events such as new bookings",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "bookingId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["type", "title", "message", "read", "createdAt"]
+    },
+    "emailLogs": {
+      "title": "Email Logs",
+      "description": "Audit records of sent and attempted emails",
+      "type": "object",
+      "properties": {
+        "recipient": { "type": "string" },
+        "bookingId": { "type": "string" },
+        "type": { "type": "string" },
+        "subject": { "type": "string" },
+        "status": { "type": "string", "enum": ["sent", "failed", "pending"] },
+        "providerMessageId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "sentAt": { "type": "string" },
+        "error": { "type": "string" },
+        "retryCount": { "type": "number" }
+      },
+      "required": ["recipient", "type", "subject", "status", "createdAt"]
+    },
+    "whatsappLogs": {
+      "title": "WhatsApp Logs",
+      "description": "Audit records of sent and attempted WhatsApp messages",
+      "type": "object",
+      "properties": {
+        "phone": { "type": "string" },
+        "bookingId": { "type": "string" },
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["sent", "failed", "pending"] },
+        "providerMessageId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "sentAt": { "type": "string" },
+        "error": { "type": "string" },
+        "retryCount": { "type": "number" }
+      },
+      "required": ["phone", "type", "status", "createdAt"]
+    },
+    "auditLogs": {
+      "title": "Audit Logs",
+      "description": "System and admin operation audit trail",
+      "type": "object",
+      "properties": {
+        "adminId": { "type": "string" },
+        "adminEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "bookingId": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "details": { "type": "object" }
+      },
+      "required": ["action", "timestamp"]
+    },
+    "availability": {
+      "title": "Availability",
+      "description": "Studio booking calendar availability and blocked dates",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["AVAILABLE", "BOOKED", "BLOCKED"] },
+        "reason": { "type": "string" },
+        "bookingId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["date", "status"]
+    },
+    "galleries": {
+      "title": "Galleries",
+      "description": "Private client photo galleries with secure time-limited access",
+      "type": "object",
+      "properties": {
+        "galleryId": { "type": "string" },
+        "bookingId": { "type": "string" },
+        "secureToken": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientEmail": { "type": "string" },
+        "service": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "expiresAt": { "type": "string" },
+        "active": { "type": "boolean" },
+        "revokedAt": { "type": "string" },
+        "photos": { "type": "array" }
+      },
+      "required": ["bookingId", "secureToken", "clientName", "createdAt", "expiresAt", "active"]
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "Centralized studio photography and media category taxonomy",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "parentId": { "type": "string" },
+        "subcategories": { "type": "array" },
+        "order": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "slug"]
+    },
+    "mediaLibrary": {
+      "title": "Media Library",
+      "description": "Centralized studio media assets, images, and usage tracking",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileType": { "type": "string" },
+        "fileSize": { "type": "string" },
+        "url": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "category": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "page": { "type": "string" },
+        "section": { "type": "string" },
+        "slot": { "type": "string" },
+        "location": { "type": "string" },
+        "visible": { "type": "boolean" },
+        "status": { "type": "string" },
+        "uploadedAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "url", "category"]
+    },
+    "siteSettings": {
+      "title": "Site Settings",
+      "description": "Studio contact, business hours, and social media handles",
+      "type": "object",
+      "properties": {
+        "studioName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "googleMapsUrl": { "type": "string" },
+        "businessHours": { "type": "string" },
+        "instagram": { "type": "string" },
+        "facebook": { "type": "string" },
+        "youtube": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    }
+  }
+}

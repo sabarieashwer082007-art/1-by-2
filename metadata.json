@@ -1,0 +1,6 @@
+{
+  "name": "1 by 2 Studio",
+  "description": "Premium photography studio website and booking management platform for 1 by 2 Studio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
