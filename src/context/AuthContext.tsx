@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import {
+  User,
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  EmailAuthProvider,
+  linkWithCredential
+} from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 
@@ -10,6 +20,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string) => Promise<void>;
+  linkEmailPassword: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   authorizedAdmins: string[];
 }
@@ -21,6 +32,7 @@ const AuthContext = createContext<AuthContextType>({
   loginWithGoogle: async () => {},
   loginWithEmail: async () => {},
   registerWithEmail: async () => {},
+  linkEmailPassword: async () => {},
   logout: async () => {},
   authorizedAdmins: [],
 });
@@ -29,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [authorizedAdmins, setAuthorizedAdmins] = useState<string[]>(['brucetamilyt@gmail.com', 'nilora23x@gmail.com']);
+  const [authorizedAdmins, setAuthorizedAdmins] = useState<string[]>(['brucetamilyt@gmail.com', 'nilora23x@gmail.com', 'dhanush0220066@gmail.com']);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -37,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (currentUser) {
         // Check if user is registered in admins collection or matches primary studio administrator
         const userEmail = currentUser.email?.toLowerCase();
-        const isDefaultAdmin = userEmail === 'brucetamilyt@gmail.com' || userEmail === 'nilora23x@gmail.com';
+        const isDefaultAdmin = userEmail === 'brucetamilyt@gmail.com' || userEmail === 'nilora23x@gmail.com'|| userEmail === 'dhanush0220066@gmail.com';
         let adminStatus = isDefaultAdmin;
 
         try {
@@ -93,12 +105,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await createUserWithEmailAndPassword(auth, email, pass);
   };
 
+  const linkEmailPassword = async (email: string, pass: string) => {
+    if (!auth.currentUser) {
+      throw new Error('Please sign in with Google first.');
+    }
+
+    const credential = EmailAuthProvider.credential(email, pass);
+    await linkWithCredential(auth.currentUser, credential);
+  };
+
   const logout = async () => {
     await signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, loginWithGoogle, loginWithEmail, registerWithEmail, logout, authorizedAdmins }}>
+     <AuthContext.Provider value={{ user, isAdmin, loading, loginWithGoogle, loginWithEmail, registerWithEmail, linkEmailPassword, logout, authorizedAdmins }}>
       {children}
     </AuthContext.Provider>
   );

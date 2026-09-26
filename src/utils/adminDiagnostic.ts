@@ -16,7 +16,7 @@ export interface DiagnosticReport {
   environment: string;
 }
 
-export const KNOWN_ADMINS = ['brucetamilyt@gmail.com', 'nilora23x@gmail.com'];
+export const KNOWN_ADMINS = ['brucetamilyt@gmail.com', 'nilora23x@gmail.com', 'dhanush0220066@gmail.com'];
 
 export async function runAdminDiagnostics(): Promise<DiagnosticReport> {
   const currentUser = auth.currentUser;

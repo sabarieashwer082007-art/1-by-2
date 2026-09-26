@@ -36,7 +36,7 @@ export function getAdminEmails(): string[] {
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
-  const defaults = ['brucetamilyt@gmail.com', 'nilora23x@gmail.com'];
+  const defaults = ['brucetamilyt@gmail.com', 'nilora23x@gmail.com', 'dhanush0220066@gmail.com'];
   return Array.from(new Set([envEmail.toLowerCase(), ...defaults, ...additional]));
 }
 

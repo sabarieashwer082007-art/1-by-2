@@ -10,7 +10,7 @@ interface AdminLoginProps {
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onNavigate }) => {
-  const { loginWithGoogle, loginWithEmail, registerWithEmail, isAdmin, user } = useAuth();
+  const { loginWithGoogle, loginWithEmail, registerWithEmail, linkEmailPassword, isAdmin, user } = useAuth();
   const { siteSettings } = useStudio();
 
   const [email, setEmail] = useState('brucetamilyt@gmail.com');
@@ -27,10 +27,10 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onNaviga
 
   useEffect(() => {
     // Avoid setState during render by scheduling in next tick
-    if (user && isAdmin) {
-      const timer = setTimeout(() => {
-        onLoginSuccess();
-      }, 0);
+    if (user && isAdmin && !isRegisterMode) {
+  const timer = setTimeout(() => {
+    onLoginSuccess();
+  }, 0);
       return () => clearTimeout(timer);
     }
   }, [user, isAdmin, onLoginSuccess]);
@@ -81,6 +81,37 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onNaviga
       setLoading(false);
     }
   };
+
+ const handleSetPassword = async () => {
+  setError('');
+  setInfoMsg('');
+  setLoading(true);
+
+  try {
+    // If not signed in, authenticate this existing admin account with Google first
+    if (!user) {
+      await loginWithGoogle();
+    }
+
+    // Now link the password to the same Firebase account
+    await linkEmailPassword(email, password);
+
+    setInfoMsg('Password set successfully. You can now sign in with your email and password.');
+    setPassword('');
+  } catch (err: any) {
+    if (err.code === 'auth/credential-already-in-use') {
+      setError('This email/password credential is already linked to another account.');
+    } else if (err.code === 'auth/provider-already-linked') {
+      setError('A password is already linked to this account.');
+    } else if (err.code === 'auth/weak-password') {
+      setError('Password should be at least 6 characters long.');
+    } else {
+      setError(err.message || 'Unable to set password.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,7 +232,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onNaviga
           </div>
 
           {/* Email / Password Form */}
-          <form onSubmit={handleEmailLogin} className="space-y-4">
+          <form onSubmit={isRegisterMode ? handleSetPassword : handleEmailLogin} className="space-y-4">
             <div>
               <label className="block text-xs uppercase tracking-wider font-semibold mb-1 text-[#66645F]">
                 Admin Email
