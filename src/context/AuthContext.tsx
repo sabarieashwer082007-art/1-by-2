@@ -17,7 +17,7 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   loading: boolean;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: () => Promise<User>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string) => Promise<void>;
   linkEmailPassword: (email: string, pass: string) => Promise<void>;
@@ -29,7 +29,9 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
   loading: true,
-  loginWithGoogle: async () => {},
+  loginWithGoogle: async () => {
+  throw new Error('Google login is not available.');
+},
   loginWithEmail: async () => {},
   registerWithEmail: async () => {},
   linkEmailPassword: async () => {},
@@ -94,8 +96,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-  };
+    const result = await signInWithPopup(auth, provider);
+  return result.user;
+};
 
   const loginWithEmail = async (email: string, pass: string) => {
     await signInWithEmailAndPassword(auth, email, pass);
