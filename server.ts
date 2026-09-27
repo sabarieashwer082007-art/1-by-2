@@ -10,7 +10,7 @@ import { generateApprovalEmailHtml } from './server/src/services/approvalEmailTe
 import { approveBookingOnServer, rejectBookingOnServer } from './server/src/services/serverFirestore.js';
 import adminRoutes from './server/src/routes/adminRoutes.js';
 
-dotenv.config();
+dotenv.config({ path: './server/.env' });
 
 const app = express();
 app.use(cors());
