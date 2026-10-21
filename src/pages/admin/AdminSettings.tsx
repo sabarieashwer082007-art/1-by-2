@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useStudio } from '../../context/StudioContext';
 import { useToast } from '../../context/ToastContext';
+import { auth } from '../../lib/firebase';
 
 export const AdminSettings: React.FC = () => {
   const { siteSettings, updateSiteSettings, design } = useStudio();
@@ -68,23 +69,42 @@ export const AdminSettings: React.FC = () => {
   };
 
   // REAL INTEGRATION TEST: SEND TEST EMAIL
-  const handleSendTestEmail = async () => {
-    setTestEmailSending(true);
-    setTestEmailResult(null);
-    try {
-      const res = await fetch('/api/admin/test-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipient: siteForm.email }),
-      });
-      const data = await res.json();
-      setTestEmailResult(data);
-    } catch (err: any) {
-      setTestEmailResult({ success: false, status: 'failed', error: err.message });
-    } finally {
-      setTestEmailSending(false);
+  
+const handleSendTestEmail = async () => {
+  setTestEmailSending(true);
+  setTestEmailResult(null);
+
+  try {
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error('Please sign in as an administrator first.');
     }
-  };
+
+    const token = await user.getIdToken();
+
+    const res = await fetch('/api/admin/test-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ recipient: siteForm.email }),
+    });
+
+    const data = await res.json();
+    setTestEmailResult(data);
+  } catch (err: any) {
+    setTestEmailResult({
+      success: false,
+      status: 'failed',
+      error: err.message,
+    });
+  } finally {
+    setTestEmailSending(false);
+  }
+};
+
 
   // REAL INTEGRATION TEST: SEND TEST WHATSAPP
   const handleSendTestWhatsapp = async () => {
