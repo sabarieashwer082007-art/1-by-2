@@ -158,7 +158,7 @@ export async function rejectBooking(
   booking: Booking,
   reason: string,
   adminUser?: { uid?: string; email?: string | null }
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; emailStatus?: string }> {
   try {
     // 1. Try server-side rejection
     try {
@@ -174,9 +174,19 @@ export async function rejectBooking(
       });
 
       if (apiRes.ok) {
-        const payload = await apiRes.json();
-        if (payload.success) return { success: true };
-      }
+         const payload = await apiRes.json();
+
+         if (payload.success) {
+            return {
+              success: true,
+              emailStatus: payload.email?.status || 'failed',
+              error: payload.email?.success
+                ? undefined
+                : payload.email?.error ||
+                   'Booking rejected, but the email was not confirmed as sent.',
+    };
+  }
+}
     } catch (apiErr) {
       console.warn('Server reject API error, using direct Firestore:', apiErr);
     }

@@ -7,6 +7,7 @@ import fs from 'fs';
 import { sendEmail } from './server/src/services/emailService.js';
 import { sendWhatsappMessage } from './server/src/services/whatsappService.js';
 import { generateApprovalEmailHtml } from './server/src/services/approvalEmailTemplate.js';
+import { generateRejectionEmailHtml } from './server/src/services/rejectionEmailTemplate.js';
 import { approveBookingOnServer, rejectBookingOnServer } from './server/src/services/serverFirestore.js';
 import adminRoutes from './server/src/routes/adminRoutes.js';
 
@@ -192,25 +193,69 @@ app.post('/api/bookings/approve', async (req, res) => {
 });
 
 // Server-side Booking Rejection Flow
+
 app.post('/api/bookings/reject', async (req, res) => {
   try {
     const { docId, booking, reason, adminUser } = req.body;
     const identifier = docId || booking?.id || booking?.bookingId;
+
     if (!identifier) {
-      return res.status(400).json({ error: 'Missing booking docId or identifier' });
+      return res.status(400).json({
+        error: 'Missing booking docId or identifier',
+      });
     }
 
-    const rejectionResult = await rejectBookingOnServer(identifier, reason || 'Scheduling conflict', adminUser);
+    const rejectionReason = reason || 'Scheduling conflict';
+
+    const rejectionResult = await rejectBookingOnServer(
+      identifier,
+      rejectionReason,
+      adminUser
+    );
+
     if (!rejectionResult.success) {
-      return res.status(500).json({ error: rejectionResult.error || 'Failed to reject booking' });
+      return res.status(500).json({
+        error: rejectionResult.error || 'Failed to reject booking',
+      });
     }
 
-    res.json({ success: true });
+    // Send rejection email after the booking is successfully rejected.
+    let emailResult: any = {
+      success: false,
+      status: 'skipped',
+      error: 'Client email address is missing',
+    };
+
+    if (booking?.clientEmail) {
+      const emailHtml = generateRejectionEmailHtml({
+        bookingId: booking.bookingId || identifier,
+        clientName: booking.clientName || 'Client',
+        service: booking.service || 'Photography session',
+        preferredDate: booking.preferredDate || 'Not specified',
+        reason: rejectionReason,
+      });
+
+      emailResult = await sendEmail({
+        to: booking.clientEmail,
+        subject: 'Update on Your Photography Booking - 1 by 2 Studio',
+        html: emailHtml,
+        bookingId: booking.bookingId || identifier,
+        type: 'booking_rejected',
+      });
+    }
+
+    console.log('Booking rejection email result:', emailResult);
+
+    return res.json({
+      success: true,
+      email: emailResult,
+    });
   } catch (err: any) {
     console.error('API /api/bookings/reject error:', err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
+
 
 // Trigger customer acceptance email + WhatsApp on approval
 app.post('/api/bookings/dispatch-approval', async (req, res) => {
