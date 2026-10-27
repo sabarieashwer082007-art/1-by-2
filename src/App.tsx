@@ -33,7 +33,7 @@ import { AdminContent } from './pages/admin/AdminContent';
 import { AdminDesignSettings } from './pages/admin/AdminDesignSettings';
 import { AdminSettings } from './pages/admin/AdminSettings';
 import { AdminNotifications } from './pages/admin/AdminNotifications';
-
+import { AdminClientEmails } from './pages/admin/AdminClientEmails';
 function AppContent() {
   const { user, isAdmin, loading: authLoading } = useAuth();
 
@@ -130,6 +130,7 @@ function AppContent() {
     'admin-design',
     'admin-notifications',
     'admin-settings',
+    'admin-client-emails',
   ].includes(currentPage);
 
   if (isAdminView) {
@@ -155,6 +156,7 @@ function AppContent() {
       'admin-design': 'design',
       'admin-notifications': 'notifications',
       'admin-settings': 'settings',
+      'admin-client-emails': 'client-emails',
     };
 
     return (
@@ -172,6 +174,7 @@ function AppContent() {
             design: 'admin-design',
             notifications: 'admin-notifications',
             settings: 'admin-settings',
+            'client-emails': 'admin-client-emails',
           };
           handleNavigate(pageMap[tab] || 'admin-dashboard');
         }}
@@ -193,6 +196,7 @@ function AppContent() {
         {currentPage === 'admin-design' && <AdminDesignSettings />}
         {currentPage === 'admin-notifications' && <AdminNotifications />}
         {currentPage === 'admin-settings' && <AdminSettings />}
+        {currentPage === 'admin-client-emails' && <AdminClientEmails />}
       </AdminLayout>
     );
   }

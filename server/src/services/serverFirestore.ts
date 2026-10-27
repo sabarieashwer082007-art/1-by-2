@@ -23,8 +23,7 @@ const adminApp =
     'booking-admin'
   );
 
-const adminDb = getFirestore(
-  adminApp,
+export const adminDb = getFirestore(adminApp,
   'ai-studio-6ebd946f-cfae-44e6-bb54-80ce38059535'
 );
 

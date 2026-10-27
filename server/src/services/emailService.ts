@@ -4,7 +4,7 @@ export interface EmailOptions {
   html: string;
   text?: string;
   bookingId?: string;
-  type: 'new_booking' | 'booking_approved' | 'booking_rejected' | 'booking_cancelled' | 'manual_resend' | 'test' | 'gallery_link';
+  type: 'new_booking' | 'booking_approved' | 'booking_rejected' | 'booking_cancelled' | 'manual_resend' | 'test' | 'gallery_links' | 'custom_client_email';
 }
 
 export interface EmailResult {

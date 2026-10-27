@@ -15,14 +15,16 @@ import {
   ShieldCheck,
   Menu,
   X,
-  Search
+  Search,
+  Mail
 } from 'lucide-react';
+
 import { useAuth } from '../../context/AuthContext';
 import { useStudio } from '../../context/StudioContext';
 
 interface AdminLayoutProps {
   currentTab: string;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab:  string) => void;
   onGoToPublic: () => void;
   children: React.ReactNode;
 }
@@ -47,6 +49,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
     { id: 'content', label: 'Website Content', icon: FileText },
     { id: 'design', label: 'Styles & Design', icon: Sliders },
+    { id: 'client-emails', label: 'Client Emails', icon: Mail },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
@@ -87,6 +90,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       title: 'Integrations & System Settings',
       subtitle: 'Firebase, WhatsApp Business API, and Resend email credentials.',
     },
+    'client-emails': {
+     title: 'Client Emails',
+     subtitle: 'Compose, send, and manage custom client emails',
+},
   };
 
   const currentHeader = pageTitles[currentTab] || {
