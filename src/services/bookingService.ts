@@ -173,20 +173,45 @@ export async function rejectBooking(
         }),
       });
 
+      
       if (apiRes.ok) {
-         const payload = await apiRes.json();
+        const payload = await apiRes.json();
 
-         if (payload.success) {
-            return {
-              success: true,
-              emailStatus: payload.email?.status || 'failed',
-              error: payload.email?.success
-                ? undefined
-                : payload.email?.error ||
-                   'Booking rejected, but the email was not confirmed as sent.',
-    };
-  }
-}
+        if (payload.success) {
+          const emailStatus =
+            payload.email?.success === true
+              ? 'sent'
+              : payload.email?.status === 'not_configured'
+                ? 'not_configured'
+                : 'failed';
+
+          const emailError = payload.email?.success
+            ? undefined
+            : payload.email?.error ||
+              'Booking rejected, but the rejection email was not confirmed as sent.';
+
+          // Save the email result to the booking document.
+          try {
+            await updateDoc(doc(db, 'bookings', docId), {
+              emailStatus,
+              rejectionEmailError: emailError || null,
+              updatedAt: new Date().toISOString(),
+            });
+          } catch (statusError) {
+            console.error(
+              'Failed to save rejection email status:',
+              statusError
+            );
+          }
+
+          return {
+            success: true,
+            emailStatus,
+            error: emailError,
+          };
+        }
+      }
+
     } catch (apiErr) {
       console.warn('Server reject API error, using direct Firestore:', apiErr);
     }

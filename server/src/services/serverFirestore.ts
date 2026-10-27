@@ -11,6 +11,22 @@ import {
   runTransaction
 } from 'firebase/firestore';
 import { db } from '../../../src/lib/firebase.ts';
+import { initializeApp, applicationDefault, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+const adminApp =
+  getApps().find((app) => app.name === 'booking-admin') ??
+  initializeApp(
+    {
+      credential: applicationDefault(),
+      projectId: 'gen-lang-client-0012370071',
+    },
+    'booking-admin'
+  );
+
+const adminDb = getFirestore(
+  adminApp,
+  'ai-studio-6ebd946f-cfae-44e6-bb54-80ce38059535'
+);
 
 /**
  * Normalizes date to YYYY-MM-DD
@@ -287,6 +303,8 @@ export async function approveBookingOnServer(
 /**
  * Server-side Booking Rejection
  */
+
+
 export async function rejectBookingOnServer(
   identifier: string,
   reason: string,
@@ -294,26 +312,41 @@ export async function rejectBookingOnServer(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const now = new Date().toISOString();
-    let targetDocRef = doc(db, 'bookings', identifier);
-    let snap = await getDoc(targetDocRef);
 
-    if (!snap.exists()) {
-      const q = query(collection(db, 'bookings'), where('bookingId', '==', identifier));
-      const querySnap = await getDocs(q);
-      if (!querySnap.empty) {
-        targetDocRef = querySnap.docs[0].ref;
-        snap = querySnap.docs[0];
-      } else {
-        return { success: false, error: `Booking ${identifier} not found.` };
+    const bookingsCollection = adminDb.collection('bookings');
+
+    let targetDocRef = bookingsCollection.doc(identifier);
+    let snap = await targetDocRef.get();
+
+    // If the document ID doesn't match, search by bookingId.
+    if (!snap.exists) {
+      const querySnap = await bookingsCollection
+        .where('bookingId', '==', identifier)
+        .limit(1)
+        .get();
+
+      if (querySnap.empty) {
+        return {
+          success: false,
+          error: `Booking ${identifier} not found.`,
+        };
       }
+
+      snap = querySnap.docs[0];
+      targetDocRef = snap.ref;
     }
 
     const bookingData = snap.data();
+
     if (!bookingData) {
-      return { success: false, error: `Booking data for ${identifier} is missing or corrupt.` };
+      return {
+        success: false,
+        error: `Booking data for ${identifier} is missing or corrupt.`,
+      };
     }
 
-    await updateDoc(targetDocRef, {
+    // Update the booking using Firebase Admin.
+    await targetDocRef.update({
       status: 'rejected',
       rejectedAt: now,
       rejectionReason: reason || 'Scheduling conflict',
@@ -322,21 +355,29 @@ export async function rejectBookingOnServer(
       adminEmail: adminInfo?.email || 'brucetamilyt@gmail.com',
     });
 
+    // Record the rejection in the audit log.
     try {
-      await addDoc(collection(db, 'auditLogs'), {
+      await adminDb.collection('auditLogs').add({
         bookingId: bookingData.bookingId,
         action: 'booking_rejected',
-        reason,
+        reason: reason || 'Scheduling conflict',
         adminId: adminInfo?.uid || 'admin-portal',
         adminEmail: adminInfo?.email || 'brucetamilyt@gmail.com',
         timestamp: now,
       });
-    } catch (e) {}
+    } catch (auditError) {
+      console.error('Could not create rejection audit log:', auditError);
+    }
+
+    console.log('Booking rejected successfully:', identifier);
 
     return { success: true };
   } catch (err: any) {
     console.error('rejectBookingOnServer error:', err);
-    return { success: false, error: err.message };
+
+    return {
+      success: false,
+      error: err.message || 'Failed to reject booking.',
+    };
   }
 }
-
